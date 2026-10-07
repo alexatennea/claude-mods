@@ -1,0 +1,24 @@
+{
+  "name": "void-mods",
+  "description": "Claude Code mods for planning and model-routed coding",
+  "owner": {
+    "name": "alexatennea"
+  },
+  "plugins": [
+    {
+      "name": "task-planner",
+      "source": "./task-planner",
+      "description": "Plan work with an Opus planner agent and track the steps in a pane"
+    },
+    {
+      "name": "coding-agents",
+      "source": "./coding-agents",
+      "description": "A coder subagent the main session delegates focused coding tasks to"
+    },
+    {
+      "name": "model-router",
+      "source": "./model-router",
+      "description": "Rates each coding task with Haiku and runs it on Haiku, Sonnet or Opus"
+    }
+  ]
+}

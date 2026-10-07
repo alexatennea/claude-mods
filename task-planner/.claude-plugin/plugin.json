@@ -1,0 +1,9 @@
+{
+  "name": "task-planner",
+  "version": "0.1.0",
+  "description": "Plan work with an Opus planner agent and track the steps in a pane",
+  "author": {
+    "name": "alexatennea"
+  },
+  "types": "./types/index.d.ts"
+}

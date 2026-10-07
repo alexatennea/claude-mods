@@ -1,0 +1,41 @@
+{
+  "name": "model-router",
+  "version": "0.1.0",
+  "description": "Rates each coding task with Haiku and runs it on Haiku, Sonnet or Opus",
+  "author": {
+    "name": "alexatennea"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "easyModel": {
+      "type": "string",
+      "title": "Model for easy tasks",
+      "description": "Alias or model id",
+      "default": "haiku"
+    },
+    "mediumModel": {
+      "type": "string",
+      "title": "Model for medium tasks",
+      "description": "Alias or model id",
+      "default": "sonnet"
+    },
+    "hardModel": {
+      "type": "string",
+      "title": "Model for hard tasks",
+      "description": "Alias or model id",
+      "default": "opus"
+    },
+    "classifierModel": {
+      "type": "string",
+      "title": "Model that rates tasks",
+      "description": "Should be cheap",
+      "default": "haiku"
+    },
+    "routedAgents": {
+      "type": "string",
+      "title": "Agent types to route",
+      "description": "Comma-separated subagent types",
+      "default": "coding-agents:coder"
+    }
+  }
+}

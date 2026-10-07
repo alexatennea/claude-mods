@@ -1,0 +1,8 @@
+{
+  "name": "coding-agents",
+  "version": "0.1.0",
+  "description": "A coder subagent the main session delegates focused coding tasks to",
+  "author": {
+    "name": "alexatennea"
+  }
+}
