@@ -1,0 +1,7 @@
+{
+  "name": "mod-monitor",
+  "version": "0.1.0",
+  "description": "A pane showing what each mod is doing, the agents they start and the messages passing between them",
+  "author": { "name": "alexatennea" },
+  "types": "./types/index.d.ts"
+}

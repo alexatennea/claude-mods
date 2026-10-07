@@ -19,6 +19,11 @@
       "name": "model-router",
       "source": "./model-router",
       "description": "Rates each coding task with Haiku and runs it on Haiku, Sonnet or Opus"
+    },
+    {
+      "name": "mod-monitor",
+      "source": "./mod-monitor",
+      "description": "A pane showing what each mod is doing, the agents they start and the messages passing between them"
     }
   ]
 }
