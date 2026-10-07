@@ -7,9 +7,11 @@ Four mods that work together: plan first, then code with each task sent to a mod
 | `task-planner` | `/plan <goal>` runs an **Opus** planner agent (read-only) that returns a checklist of focused tasks, each rated easy/medium/hard. The steps appear in a **Plan** pane. |
 | `coding-agents` | Adds a `coder` subagent and tells the main session to hand each focused coding task to it, one at a time. |
 | `model-router` | Before each `coder` starts, **Haiku** rates the task and the coder runs on **Haiku** (easy), **Sonnet** (medium) or **Opus** (hard). Falls back to Sonnet if rating fails; a model the session asks for explicitly wins. |
-| `mod-monitor` | A **Mods** pane showing what each mod is doing, every agent they start (running / done, model, time, tokens) and the messages passing between you, the session, the mods and the models. |
+| `mod-monitor` | A **Mods** pane: in the desktop app an animated control room (you → session → mods → Haiku/Sonnet/Opus) with messages flying along the wires, busy mods pulsing, running agents linked to their model, and the model mix; in the terminal an emoji/colour version. Hover anything for details. |
 
 They need Claude Code on your own computer (terminal `claude`, or the Code tab of the desktop app). Cloud sessions in the Claude app don't load plugins.
+
+![Mods pane in the desktop app](docs/mod-monitor.png)
 
 ## Install
 
@@ -21,6 +23,8 @@ In a Claude Code session:
 /plugin install model-router --marketplace alexatennea/claude-mods
 /plugin install mod-monitor --marketplace alexatennea/claude-mods
 ```
+
+Already added the marketplace before a mod existed? Refresh it first: `/plugin marketplace update void-mods`. After an update to a mod you have, run `/plugin update <mod>`.
 
 Answer `y` to add the marketplace the first time, then pick **user** scope so they're on in every session. Start a new session (or run `/reload-plugins`) and they're active.
 

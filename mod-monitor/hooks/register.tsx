@@ -3,6 +3,8 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { AgentRow, FlowRow, ModRow } from '../types'
 
+import { FAMILY_COLOR, MOD_ICON, familyOf, kTokens, nodeOf, ownerOf, sceneSvg, statsOf } from './scene'
+
 const PANE = 'mod-monitor'
 const ME = 'mod-monitor'
 const MAX_FLOW = 200
@@ -12,12 +14,7 @@ const agents = atom({ plugin: 'mod-monitor', key: 'agents' } as const, [])
 const flow = atom({ plugin: 'mod-monitor', key: 'flow' } as const, [])
 const mods = atom({ plugin: 'mod-monitor', key: 'mods' } as const, [])
 
-/** The plugin that owns a namespaced name (`model-router:coder` → `model-router`), else the name. */
-export function ownerOf(name: string): string {
-  const i = name.indexOf(':')
-
-  return i > 0 ? name.slice(0, i) : name
-}
+export { ownerOf }
 
 export function short(text: string, max = 60): string {
   const one = text.replace(/\s+/g, ' ').trim()
@@ -156,47 +153,107 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text } = $.ui.resolve(e)
     const modRows = await read($, mods)
     const agentRows = await read($, agents)
     const flowRows = await read($, flow)
+    const now = await $.clock.now()
     const running = agentRows.filter(a => a.status === 'running')
-    const finished = agentRows.filter(a => a.status !== 'running').slice(-5)
+    const finished = agentRows.filter(a => a.status !== 'running').slice(-4)
+    const stats = statsOf(agentRows)
     const rows = e.viewport?.rows ?? 30
-    const room = Math.max(3, rows - 8 - modRows.length - running.length - finished.length)
+
+    if (e.surface === 'terminal') {
+      const { Box, Text } = $.ui.resolve(e)
+      const room = Math.max(3, rows - 12 - modRows.length - running.length - finished.length)
+
+      return (
+        <Box flexDirection="column">
+          <Text bold>🎛️  Mods</Text>
+          {modRows.length === 0 && <Text dimColor>   all quiet… try /plan</Text>}
+          {modRows.map(m => (
+            <Text wrap="truncate-end">
+              {now - m.at < 20_000 ? '⚡' : '  '} {MOD_ICON[m.name] ?? '🧩'} <Text color="claude">{m.name}</Text> <Text dimColor>{m.doing}</Text>
+            </Text>
+          ))}
+
+          <Text bold>🤖 Agents</Text>
+          {agentRows.length === 0 && <Text dimColor>   none yet</Text>}
+          {running.map(a => (
+            <Text wrap="truncate-end">
+              {'   '}
+              <Text color="warning">◉</Text> <Text color={badgeOf(a.model).color} bold>{badgeOf(a.model).text}</Text> {a.description} <Text dimColor>· {Math.round((now - a.startedAt) / 1000)}s</Text>
+            </Text>
+          ))}
+          {finished.map(a => (
+            <Text wrap="truncate-end">
+              {'   '}
+              {a.status === 'done' ? <Text color="success">✔</Text> : <Text color="error">✘</Text>} <Text color={badgeOf(a.model).color} bold>{badgeOf(a.model).text}</Text> <Text dimColor>{a.description} · {a.seconds ?? 0}s{a.tokens !== undefined ? ` · ${kTokens(a.tokens)} tok` : ''}</Text>
+            </Text>
+          ))}
+          {agentRows.length > 0 && (
+            <Text>
+              {'   '}
+              {(['haiku', 'sonnet', 'opus', 'other'] as const).map(f => (
+                <Text color={FAMILY_COLOR[f]}>{'█'.repeat(Math.round((24 * stats.byFamily[f]) / agentRows.length))}</Text>
+              ))}{' '}
+              <Text dimColor>💰 {stats.cheapShare}% on cheaper models · {kTokens(stats.tokens)} tok</Text>
+            </Text>
+          )}
+
+          <Text bold>📡 Messages</Text>
+          {flowRows.length === 0 && <Text dimColor>   nothing yet</Text>}
+          {flowRows.slice(-room).map(f => (
+            <Text wrap="truncate-end">
+              <Text dimColor>{clockOf(f.at)}</Text> {iconOf(f.from)} → {iconOf(f.to)} <Text dimColor>{f.from} → {f.to}: {f.text}</Text>
+            </Text>
+          ))}
+        </Box>
+      )
+    }
+
+    // Desktop, editor and phone: the animated control room, then the latest messages.
+    const { Box, Text, Svg } = $.ui.resolve(e)
+    const svg = sceneSvg({ now, mods: modRows, agents: agentRows, flow: flowRows })
 
     return (
-      <Box flexDirection="column">
-        <Text bold>Mods</Text>
-        {modRows.length === 0 && <Text dimColor>No mod activity yet.</Text>}
-        {modRows.map(m => (
-          <Text wrap="truncate-end">
-            <Text color="claude">{m.name}</Text> <Text dimColor>{clockOf(m.at)}</Text> {m.doing}
-          </Text>
-        ))}
-
-        <Text bold>Agents</Text>
-        {agentRows.length === 0 && <Text dimColor>None started yet.</Text>}
-        {running.map(a => (
-          <Text wrap="truncate-end">
-            <Text color="warning">● running</Text> {a.type} <Text dimColor>on {a.model}</Text> {a.description}
-          </Text>
-        ))}
-        {finished.map(a => (
-          <Text wrap="truncate-end" dimColor>
-            {a.status === 'done' ? '✓' : '✗'} {a.type} on {a.model} {a.description} · {a.seconds ?? 0}s
-            {a.tokens !== undefined ? ` · ${Math.round(a.tokens / 100) / 10}k tok` : ''}
-          </Text>
-        ))}
-
-        <Text bold>Messages</Text>
-        {flowRows.length === 0 && <Text dimColor>Nothing yet.</Text>}
-        {flowRows.slice(-room).map(f => (
-          <Text wrap="truncate-end">
-            <Text dimColor>{clockOf(f.at)}</Text> {f.from} → {f.to}: <Text dimColor>{f.text}</Text>
-          </Text>
-        ))}
+      <Box flexDirection="column" gap={1}>
+        <Svg source={svg} alt={describe(modRows, agentRows)} isInteractive />
+        <Box flexDirection="column">
+          <Text bold>📡 Messages</Text>
+          {flowRows.length === 0 && <Text dimColor>Nothing yet. Try /plan or ask for some coding work.</Text>}
+          {flowRows.slice(-8).reverse().map(f => (
+            <Text wrap="truncate-end">
+              <Text dimColor>{clockOf(f.at)}</Text> {iconOf(f.from)} <Text bold>{f.from}</Text> → {iconOf(f.to)} <Text bold>{f.to}</Text> <Text dimColor>{f.text}</Text>
+            </Text>
+          ))}
+        </Box>
       </Box>
     )
   })
+}
+
+/** A model as a coloured badge: 🍃 haiku, 🎼 sonnet, 🧠 opus. */
+export function badgeOf(model: string) {
+  const f = familyOf(model)
+
+  return { text: `${iconOf(f)} ${f}`, color: FAMILY_COLOR[f] }
+}
+
+export function iconOf(label: string): string {
+  const node = nodeOf(label)
+  if (node === 'you') return '🧑'
+  if (node === 'session') return '🤖'
+  if (node === 'model:haiku') return '🍃'
+  if (node === 'model:sonnet') return '🎼'
+  if (node === 'model:opus') return '🧠'
+  if (node.startsWith('model:')) return '❔'
+
+  return MOD_ICON[node] ?? '🧩'
+}
+
+function describe(modRows: readonly ModRow[], agentRows: readonly AgentRow[]): string {
+  const running = agentRows.filter(a => a.status === 'running')
+  const mods = modRows.map(m => `${m.name}: ${m.doing}`).join('; ')
+
+  return `Mod activity. ${mods || 'No mod activity yet.'} ${running.length} agents running, ${agentRows.length} started in all.`
 }
