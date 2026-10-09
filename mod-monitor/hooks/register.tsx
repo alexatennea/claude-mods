@@ -9,6 +9,8 @@ const PANE = 'mod-monitor'
 const ME = 'mod-monitor'
 const MAX_FLOW = 200
 const MAX_AGENTS = 50
+/** CSS pixels: tall enough to read; the drawing keeps its shape and centres in whatever width the pane has. */
+const SVG_HEIGHT = 380
 
 const agents = atom({ plugin: 'mod-monitor', key: 'agents' } as const, [])
 const flow = atom({ plugin: 'mod-monitor', key: 'flow' } as const, [])
@@ -217,7 +219,7 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column" gap={1}>
-        <Svg source={svg} alt={describe(modRows, agentRows)} isInteractive />
+        <Svg source={svg} alt={describe(modRows, agentRows)} height={SVG_HEIGHT} isInteractive />
         <Box flexDirection="column">
           <Text bold>📡 Messages</Text>
           {flowRows.length === 0 && <Text dimColor>Nothing yet. Try /plan or ask for some coding work.</Text>}

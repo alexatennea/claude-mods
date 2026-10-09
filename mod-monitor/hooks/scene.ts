@@ -72,6 +72,8 @@ function esc(text: string): string {
 
 type Node = { id: string; x: number; y: number; r: number; color: string; icon: string; label: string; tip: string }
 
+/** The card is dark in both themes, so the colours never wash out on a white frame. */
+const BG = '#15171c'
 const W = 690
 const H = 360
 const GRAPH_H = 290
@@ -209,15 +211,15 @@ export function sceneSvg(input: { now: number; mods: readonly ModRow[]; agents: 
     parts.push(`<text x="${n.x}" y="${n.y + 7}" text-anchor="middle" font-size="${Math.round(n.r * 0.85)}">${n.icon}</text>`)
     parts.push(
       isModel
-        ? `<text class="label" x="${n.x + n.r + 8}" y="${n.y + 4}">${esc(n.label)}</text>`
-        : `<text class="label" x="${n.x}" y="${n.y + n.r + 16}" text-anchor="middle">${esc(n.label)}</text>`,
+        ? `<text class="label" x="${n.x + n.r + 8}" y="${n.y + 5}">${esc(n.label)}</text>`
+        : `<text class="label" x="${n.x}" y="${n.y + n.r + 18}" text-anchor="middle">${esc(n.label)}</text>`,
     )
     if (isModel) {
       const count = stats.byFamily[n.label as Family]
       if (count > 0) {
         parts.push(
-          `<circle cx="${n.x + n.r * 0.75}" cy="${n.y - n.r * 0.75}" r="10" fill="${n.color}"/>` +
-            `<text x="${n.x + n.r * 0.75}" y="${n.y - n.r * 0.75 + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${count}</text>`,
+          `<circle cx="${n.x + n.r * 0.75}" cy="${n.y - n.r * 0.75}" r="11" fill="${n.color}"/>` +
+            `<text x="${n.x + n.r * 0.75}" y="${n.y - n.r * 0.75 + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">${count}</text>`,
         )
       }
     }
@@ -229,14 +231,14 @@ export function sceneSvg(input: { now: number; mods: readonly ModRow[]; agents: 
   const barW = W - 48
   const barY = GRAPH_H + 14
   const total = agents.length
-  parts.push(`<rect x="${barX}" y="${barY}" width="${barW}" height="12" rx="6" class="track"/>`)
+  parts.push(`<rect x="${barX}" y="${barY}" width="${barW}" height="16" rx="8" class="track"/>`)
   let x = barX
   for (const f of ['haiku', 'sonnet', 'opus', 'other'] as const) {
     const n = stats.byFamily[f]
     if (n === 0 || total === 0) continue
     const w = (barW * n) / total
-    parts.push(`<rect x="${x}" y="${barY}" width="${w}" height="12" fill="${FAMILY_COLOR[f]}"><title>${f}: ${n}</title></rect>`)
-    if (w > 60) parts.push(`<text x="${x + 6}" y="${barY + 10}" font-size="9" font-weight="700" fill="#fff">${f} ${n}</text>`)
+    parts.push(`<rect x="${x}" y="${barY}" width="${w}" height="16" fill="${FAMILY_COLOR[f]}"><title>${f}: ${n}</title></rect>`)
+    if (w > 70) parts.push(`<text x="${x + 8}" y="${barY + 12}" font-size="11" font-weight="700" fill="#fff">${f} ${n}</text>`)
     x += w
   }
   const summary =
@@ -244,15 +246,16 @@ export function sceneSvg(input: { now: number; mods: readonly ModRow[]; agents: 
       ? 'No agents yet. Try /plan or ask for some coding work.'
       : `${total} task${total === 1 ? '' : 's'} · ${kTokens(stats.tokens)} tokens · 💰 ${stats.cheapShare}% on cheaper models` +
         (running.length > 0 ? ` · ⚡ ${running.length} running` : '')
-  parts.push(`<text class="label" x="${barX}" y="${barY + 34}">${esc(summary)}</text>`)
+  parts.push(`<text class="summary" x="${barX}" y="${barY + 38}">${esc(summary)}</text>`)
 
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="system-ui, -apple-system, sans-serif">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" ` +
+    `style="background:${BG}" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">` +
     `<style>` +
-    `.wire line{stroke:#8884;stroke-width:1.5}.wire line.faint{stroke:#8882;stroke-dasharray:2 4}` +
-    `.label{font-size:12px;fill:#334155}.track{fill:#8883}` +
-    `@media (prefers-color-scheme: dark){.label{fill:#e2e8f0}}` +
+    `.wire line{stroke:#ffffff38;stroke-width:2}.wire line.faint{stroke:#ffffff22;stroke-dasharray:3 5}` +
+    `.label{font-size:14px;font-weight:600;fill:#e8eaf0}.summary{font-size:14px;fill:#c4c9d4}.track{fill:#ffffff1a}` +
     `</style>` +
+    `<rect x="0" y="0" width="${W}" height="${H}" fill="${BG}"/>` +
     parts.join('') +
     `</svg>`
   )
